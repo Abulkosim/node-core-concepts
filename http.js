@@ -8,7 +8,6 @@ function parseBody(req) {
     let body = '';
     req.on('data', chunk => {
       body += chunk.toString();
-      // prevent memory attacks
       if (body.length > 1e6) {
         req.connection.destroy();
         reject(new Error('body too large'));
