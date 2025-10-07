@@ -9,5 +9,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abulkosim/node-core-concepts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Abulkosim/node-core-concepts/issues"
+  },
+  "homepage": "https://github.com/Abulkosim/node-core-concepts#readme",
   "description": ""
 }
