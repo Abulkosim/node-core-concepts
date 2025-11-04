@@ -17,5 +17,8 @@
     "url": "https://github.com/Abulkosim/node-core-concepts/issues"
   },
   "homepage": "https://github.com/Abulkosim/node-core-concepts#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "node-gtts": "^2.0.2"
+  }
 }

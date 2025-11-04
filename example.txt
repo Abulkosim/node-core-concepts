@@ -1,1 +1,1 @@
-this is an example 
+Closures are not a “feature you use” but a byproduct of lexical scope. They surface naturally in higher-order functions, hooks, callbacks, and factories. Once you stop trying to spot them explicitly and instead understand that any inner function “carrying” its outer scope is a closure, the concept dissolves into intuition.
