@@ -4,7 +4,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1", 
+    "start": "nodemon multi-threading.js"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +20,7 @@
   "homepage": "https://github.com/Abulkosim/node-core-concepts#readme",
   "description": "",
   "dependencies": {
-    "node-gtts": "^2.0.2"
+    "node-gtts": "^2.0.2",
+    "nodemon": "^3.1.10"
   }
 }
