@@ -1,11 +1,19 @@
-import { parentPort, workerData } from 'worker_threads';
+import { parentPort } from 'worker_threads';
 
-console.log('child received', workerData);
+parentPort.on('message', (message) => {
+  console.log('Worker received:', message);
+  
+  if (typeof message === 'object' && message.type === 'task') {
+    const result = processTask(message.data);
+    parentPort.postMessage({ type: 'result', data: result });
+  } else {
+    parentPort.postMessage(`Worker echoing: ${message}`);
+  }
+});
 
-const port = workerData.port;
-
-port.on('message', (message) => {
-  console.log('Received message from parent:', message)
-})
-
-port.postMessage('Hello from child')
+function processTask(data) {
+  if (Array.isArray(data)) {
+    return data.map(x => x * 2);
+  }
+  return null;
+}
