@@ -40,104 +40,143 @@
 // });
 
 
-import http from "http";
+// import http from "http";
 
-const notes = new Map();
-let nextId = 1;
+// const notes = new Map();
+// let nextId = 1;
 
-const server = http.createServer(async (req, res) => {
-  const { method, url } = req;
-  if (url === "/notes" && method === "GET") {
-    const body = JSON.stringify(Array.from(notes.entries()).map(([id, text]) => ({ id, text })));
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(body);
-    return;
+// const server = http.createServer(async (req, res) => {
+//   const { method, url } = req;
+//   if (url === "/notes" && method === "GET") {
+//     const body = JSON.stringify(Array.from(notes.entries()).map(([id, text]) => ({ id, text })));
+//     res.writeHead(200, { "Content-Type": "application/json" });
+//     res.end(body);
+//     return;
+//   }
+
+//   if (url === "/notes" && method === "POST") {
+//     let raw = "";
+//     req.on("data", chunk => (raw += chunk));
+//     req.on("end", () => {
+//       try {
+//         const { text } = JSON.parse(raw || "{}");
+//         if (!text) {
+//           res.writeHead(400, { "Content-Type": "application/json" });
+//           res.end(JSON.stringify({ error: "text is required" }));
+//           return;
+//         }
+//         const id = String(nextId++);
+//         notes.set(id, text);
+//         res.writeHead(201, {
+//           "Content-Type": "application/json",
+//           Location: `/notes/${id}`,
+//         });
+//         res.end(JSON.stringify({ id, text }));
+//       } catch (e) {
+//         res.writeHead(400, { "Content-Type": "application/json" });
+//         res.end(JSON.stringify({ error: "Invalid JSON" }));
+//       }
+//     });
+//     return;
+//   }
+
+//   const noteIdMatch = url.match(/^\/notes\/(\d+)$/);
+//   if (noteIdMatch) {
+//     const id = noteIdMatch[1];
+
+//     if (method === "GET") {
+//       if (!notes.has(id)) {
+//         res.writeHead(404, { "Content-Type": "application/json" });
+//         res.end(JSON.stringify({ error: "Not found" }));
+//         return;
+//       }
+//       res.writeHead(200, { "Content-Type": "application/json" });
+//       res.end(JSON.stringify({ id, text: notes.get(id) }));
+//       return;
+//     }
+
+//     if (method === "PUT") {
+//       let raw = "";
+//       req.on("data", chunk => (raw += chunk));
+//       req.on("end", () => {
+//         try {
+//           const { text } = JSON.parse(raw || "{}");
+//           if (!text) {
+//             res.writeHead(400, { "Content-Type": "application/json" });
+//             res.end(JSON.stringify({ error: "text is required" }));
+//             return;
+//           }
+//           const exists = notes.has(id);
+//           notes.set(id, text);
+//           res.writeHead(exists ? 200 : 201, {
+//             "Content-Type": "application/json",
+//             Location: `/notes/${id}`,
+//           });
+//           res.end(JSON.stringify({ id, text }));
+//         } catch (e) {
+//           res.writeHead(400, { "Content-Type": "application/json" });
+//           res.end(JSON.stringify({ error: "Invalid JSON" }));
+//         }
+//       });
+//       return;
+//     }
+
+//     if (method === "DELETE") {
+//       if (!notes.has(id)) {
+//         res.writeHead(404, { "Content-Type": "application/json" });
+//         res.end(JSON.stringify({ error: "Not found" }));
+//         return;
+//       }
+//       notes.delete(id);
+//       res.writeHead(204);
+//       res.end();
+//       return;
+//     }
+//   }
+
+//   res.writeHead(404, { "Content-Type": "application/json" });
+//   res.end(JSON.stringify({ error: "Route not found" }));
+// });
+
+// server.listen(3000, () => {
+//   console.log("HTTP lab running on http://localhost:3000");
+// });
+
+
+import express from 'express';
+import crypto from 'node:crypto';
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('ok');
+})
+
+const notes = [
+  { id: crypto.randomUUID(), text: 'first note' }
+]
+
+app.use(express.json());
+
+app.get('/notes', (req, res) => {
+  res.send(notes);
+})
+
+app.post('/notes', (req, res) => {
+  const { text } = req.body;
+  const createdNote = {
+    id: crypto.randomUUID(),  
+    text
   }
+  notes.push(createdNote);
+  res.send(createdNote);
+})
 
-  if (url === "/notes" && method === "POST") {
-    let raw = "";
-    req.on("data", chunk => (raw += chunk));
-    req.on("end", () => {
-      try {
-        const { text } = JSON.parse(raw || "{}");
-        if (!text) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "text is required" }));
-          return;
-        }
-        const id = String(nextId++);
-        notes.set(id, text);
-        res.writeHead(201, {
-          "Content-Type": "application/json",
-          Location: `/notes/${id}`,
-        });
-        res.end(JSON.stringify({ id, text }));
-      } catch (e) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Invalid JSON" }));
-      }
-    });
-    return;
-  }
+app.get('/notes/:id', (req, res) => {
+  const { id } = req.params;
+  const note = notes.find((note) => note.id === id);
+  res.send(note);
+})
 
-  const noteIdMatch = url.match(/^\/notes\/(\d+)$/);
-  if (noteIdMatch) {
-    const id = noteIdMatch[1];
-
-    if (method === "GET") {
-      if (!notes.has(id)) {
-        res.writeHead(404, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Not found" }));
-        return;
-      }
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ id, text: notes.get(id) }));
-      return;
-    }
-
-    if (method === "PUT") {
-      let raw = "";
-      req.on("data", chunk => (raw += chunk));
-      req.on("end", () => {
-        try {
-          const { text } = JSON.parse(raw || "{}");
-          if (!text) {
-            res.writeHead(400, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ error: "text is required" }));
-            return;
-          }
-          const exists = notes.has(id);
-          notes.set(id, text);
-          res.writeHead(exists ? 200 : 201, {
-            "Content-Type": "application/json",
-            Location: `/notes/${id}`,
-          });
-          res.end(JSON.stringify({ id, text }));
-        } catch (e) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "Invalid JSON" }));
-        }
-      });
-      return;
-    }
-
-    if (method === "DELETE") {
-      if (!notes.has(id)) {
-        res.writeHead(404, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Not found" }));
-        return;
-      }
-      notes.delete(id);
-      res.writeHead(204);
-      res.end();
-      return;
-    }
-  }
-
-  res.writeHead(404, { "Content-Type": "application/json" });
-  res.end(JSON.stringify({ error: "Route not found" }));
-});
-
-server.listen(3000, () => {
-  console.log("HTTP lab running on http://localhost:3000");
-});
+app.listen(3000, () => {
+  console.log('check')
+})
