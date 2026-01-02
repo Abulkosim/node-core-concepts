@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Authentication Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .section h2 {
+            color: #555;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .token-display {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .token-display.show {
+            display: block;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info {
+            background: #e7f3ff;
+            color: #004085;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            border-left: 4px solid #004085;
+        }
+
+        .copy-btn {
+            margin-top: 10px;
+            background: #6c757d;
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+
+        .copy-btn:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 JWT Authentication Demo</h1>
+
+        <div class="section">
+            <h2>1. Login & Get Token</h2>
+            <div class="info">
+                Click the button below to login and receive a JWT access token. The token expires in 15 minutes.
+            </div>
+            <button id="loginBtn" onclick="login()">Login</button>
+            <div id="tokenDisplay" class="token-display"></div>
+            <button id="copyBtn" class="copy-btn" onclick="copyToken()" style="display: none;">Copy Token</button>
+        </div>
+
+        <div class="section">
+            <h2>2. Test Admin Endpoint</h2>
+            <div class="info">
+                Use your token to access the protected /admin endpoint. Make sure you've logged in first!
+            </div>
+            <button id="adminBtn" onclick="testAdmin()" disabled>Access Admin Endpoint</button>
+            <div id="adminResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentToken = null;
+
+        async function login() {
+            const loginBtn = document.getElementById('loginBtn');
+            const tokenDisplay = document.getElementById('tokenDisplay');
+            const copyBtn = document.getElementById('copyBtn');
+            const adminBtn = document.getElementById('adminBtn');
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+
+            try {
+                const response = await fetch('http://localhost:3000/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                currentToken = data.accessToken;
+
+                tokenDisplay.textContent = currentToken;
+                tokenDisplay.classList.add('show');
+                copyBtn.style.display = 'block';
+                adminBtn.disabled = false;
+
+                loginBtn.textContent = 'Login Successful!';
+                setTimeout(() => {
+                    loginBtn.textContent = 'Login';
+                    loginBtn.disabled = false;
+                }, 2000);
+            } catch (error) {
+                tokenDisplay.textContent = `Error: ${error.message}`;
+                tokenDisplay.classList.add('show');
+                tokenDisplay.style.background = '#2d3748';
+                tokenDisplay.style.color = '#fc8181';
+                loginBtn.textContent = 'Login Failed - Try Again';
+                loginBtn.disabled = false;
+            }
+        }
+
+        async function testAdmin() {
+            if (!currentToken) {
+                showResult('adminResult', 'Please login first to get a token!', 'error');
+                return;
+            }
+
+            const adminBtn = document.getElementById('adminBtn');
+            adminBtn.disabled = true;
+            adminBtn.textContent = 'Requesting...';
+
+            try {
+                const response = await fetch('http://localhost:3000/admin', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('adminResult', JSON.stringify(data, null, 2), 'success');
+                } else {
+                    showResult('adminResult', JSON.stringify(data, null, 2), 'error');
+                }
+            } catch (error) {
+                showResult('adminResult', `Error: ${error.message}\n\nMake sure the server is running on http://localhost:3000`, 'error');
+            } finally {
+                adminBtn.disabled = false;
+                adminBtn.textContent = 'Access Admin Endpoint';
+            }
+        }
+
+        function showResult(elementId, message, type) {
+            const result = document.getElementById(elementId);
+            result.textContent = message;
+            result.className = `result ${type} show`;
+        }
+
+        function copyToken() {
+            if (!currentToken) return;
+
+            navigator.clipboard.writeText(currentToken).then(() => {
+                const copyBtn = document.getElementById('copyBtn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✓ Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy token:', err);
+            });
+        }
+    </script>
+</body>
+</html>
+
