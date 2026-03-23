@@ -1,17 +1,20 @@
 import { Transform } from 'node:stream';
 import fs from 'fs';
 
-let lineNumber = 1;
 let remainder = '';
+
+const email = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+
+function redactEmails(s) {
+  return s.replace(email, '[REDACTED]');
+}
 
 const upper = new Transform({
   transform(chunk, enc, callback) {
     const parts = (remainder + chunk).split('\n');
     remainder = parts.pop();
 
-    const out = parts
-      .map((line) => `${lineNumber++}. ${line}`.toUpperCase())
-      .join('\n');
+    const out = parts.map((line) => redactEmails(line)).join('\n');
 
     callback(null, parts.length ? `${out}\n` : '');
   },
@@ -20,7 +23,7 @@ const upper = new Transform({
       callback();
       return;
     }
-    callback(null, `${lineNumber++}. ${remainder}`.toUpperCase() + '\n');
+    callback(null, redactEmails(remainder) + '\n');
   },
 })
 
