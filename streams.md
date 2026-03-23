@@ -16,7 +16,7 @@
    transform stream 
    write stream*
 
-example: read a file, redact emails, gzip the result, write to a new fiele 
+*example: read a file, redact emails, gzip the result, write to a new fiele* 
 
 1. master the following:
   readable, writeable, transform
