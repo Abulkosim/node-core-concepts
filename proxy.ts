@@ -59,30 +59,31 @@
 // const userService = createLoggingProxy(new UserService(), 'UserService');
 // userService.findById(42); 
 
-function createCachingProxy(service, ttlMs = 60_000) {
-  const cache = new Map();
+// function createCachingProxy(service, ttlMs = 60_000) {
+//   const cache = new Map();
 
-  return new Proxy(service, {
-    get(target, prop) {
-      const original = target[prop];
-      if (typeof original !== 'function') return original;
+//   return new Proxy(service, {
+//     get(target, prop) {
+//       const original = target[prop];
+//       if (typeof original !== 'function') return original;
 
-      return async function (...args) {
-        const key = `${prop}:${JSON.stringify(args)}`;
-        const cached = cache.get(key);
+//       return async function (...args) {
+//         const key = `${prop}:${JSON.stringify(args)}`;
+//         const cached = cache.get(key);
 
-        if (cached && Date.now() - cached.timestamp < ttlMs) {
-          return cached.value;
-        }
+//         if (cached && Date.now() - cached.timestamp < ttlMs) {
+//           return cached.value;
+//         }
 
-        const result = await original.apply(target, args);
-        cache.set(key, { value: result, timestamp: Date.now() });
-        return result;
-      };
-    }
-  });
-}
+//         const result = await original.apply(target, args);
+//         cache.set(key, { value: result, timestamp: Date.now() });
+//         return result;
+//       };
+//     }
+//   });
+// }
 
-const api = createCachingProxy(new WeatherApiClient(), 5 * 60_000);
-await api.getForecast('Tashkent'); 
-await api.getForecast('Tashkent'); 
+// const api = createCachingProxy(new WeatherApiClient(), 5 * 60_000);
+// await api.getForecast('Tashkent'); 
+// await api.getForecast('Tashkent'); 
+
