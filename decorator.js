@@ -103,3 +103,9 @@ function withLogging(fetchFn) {
     }
   };
 }
+
+const api = withLogging(withRetry(withTimeout(baseFetch, 3000), 3));
+
+// this single call now has timeout + retry + logging
+// and baseFetch has zero knowledge of any of it
+await api('https://api.example.com/health');
